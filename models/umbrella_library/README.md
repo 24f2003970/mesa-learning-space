@@ -1,10 +1,10 @@
-# Walkthrough: a shared umbrella station
+# Model walkthrough
 
 ## The rules
 
 There are a fixed number of people and umbrellas. A person may hold at most one umbrella. Each day, overdue trips return their umbrellas first. Shared weather is then drawn. On a rainy day, people without umbrellas try to borrow in shuffled order. A successful borrower keeps an umbrella for `trip_days`; an unsuccessful borrower records a missed request. People already travelling do not request a second umbrella. Dry days create no new requests, but due returns still happen.
 
-People interact indirectly through the station's finite stock. There is no spatial grid, pairwise conversation, queue persistence or real-world dataset. The small rule set is deliberate: follow one agent and one umbrella before adding complexity.
+People interact indirectly through the station's finite stock. There is no spatial grid, pairwise conversation, queue persistence or real-world dataset. Follow one borrower and one umbrella to trace the rules.
 
 ## Agents, model and scheduling
 
@@ -38,23 +38,23 @@ uv run umbrella-demo --agents 3 --umbrellas 1 --trip-days 2 --days 4 --rain 1 --
 | 3 | 0 | 1 | 3 | 1 | 2 |
 | 4 | 0 | 1 | 2 | 0 | 2 |
 
-The first loan starts on day 1 and is due on day 3. On day 2 that borrower is still travelling, so only the other two request umbrellas. At the start of day 3 the umbrella returns and can be borrowed again immediately. By the end of day 4 there have been two loans and one return; one umbrella remains on a trip. These are counts of attempts/loans, not claims about real people's satisfaction.
+The first loan starts on day 1 and is due on day 3. On day 2 that borrower is still travelling, so only the other two request umbrellas. At the start of day 3 the umbrella returns and can be borrowed again immediately. By the end of day 4 there have been two loans and one return; one umbrella remains on a trip.
 
-## What must always remain true
+## Conservation and data collection
 
 `available + held == total_umbrellas`, and available stock cannot be negative. Also, each agent's `loans - returns` must be 1 if holding an umbrella and 0 otherwise. Every daily request is either served or missed. These checks expose missing/duplicated umbrellas, double returns and inconsistent counters rather than merely checking that code runs.
 
 `DataCollector` stores a day-zero snapshot and one observation after each step, plus agent histories. Get model results with `model.datacollector.get_model_vars_dataframe()`. The tests check the observations and individual state, including empty stock, no rain, timing and seeded repetition.
 
-## Randomness and a useful distinction
+## Randomness
 
 Weather uses Mesa's NumPy `rng`. Shuffled activation uses its separate standard-library `random` stream. Both are initialized from the seed. Repeating the same parameters and seed reproduces weather and individual histories. Changing population size does not change the seeded weather sequence in this model; a test verifies that control.
 
 Shuffling changes who gets served. It does not guarantee fairness to every person in a short run. With identical trip durations and fixed weather, aggregate daily service may stay the same even when the identities differ. Inspect individual histories before making claims about fairness.
 
-## Experiments to do yourself
+## Experiments
 
-1. Predict the reference table, then run it. Explain day 2without looking at the code.
+1. Predict the reference table, then run it. Explain day 2 without looking at the code.
 2. Change only `--umbrellas 3`. Predict missed requests and check the result.
 3. Restore one umbrella and change only `--trip-days 1`. Explain which quantities change; more loans need not imply fewer missed attempts because people become eligible to request sooner.
 4. Try `--rain 0` and `--rain 0.5`. Keep a seed fixed before comparing scenarios.
@@ -66,11 +66,7 @@ An optional CSV export writes a new file and refuses to overwrite one:
 uv run umbrella-demo --days 10 --seed 7 --csv run-7.csv
 ```
 
-The output directory must already exist. This model has no calibrated behaviour, lost umbrellas, unequal trip lengths, spatial travel or persistent waiting queue. Those are possible later experiments after understanding the basic model, not hidden realism claims.
-
-## Authorship and personal reflection
-
-This technical walkthrough and initial implementation are AI-assisted. The learning exercise did not discover the campaign's previously prepared ContinuousSpace fix; do not claim that history. After running and modifying the model, the owner should write their actual observations in the worksheet and their personal motivation independently. The required Mesa personal GSoC sections are not supplied here.
+The output directory must already exist. This model has no calibrated behaviour, lost umbrellas, unequal trip lengths, spatial travel or persistent waiting queue. These are possible extensions once the basic model is understood.
 
 ## Inspect individual histories
 
