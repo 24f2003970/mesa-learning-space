@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mesa-umbrella-learning"
+version = "0.1.0"
+description = "An AI-assisted Mesa learning exercise about shared reusable umbrellas"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+dependencies = [
+  "mesa[rec] @ git+https://github.com/mesa/mesa.git@5451086fe47ab78e9ba894aa1b4c3063f4c247f1",
+]
+
+[project.scripts]
+umbrella-demo = "models.umbrella_library.run:main"
+
+[dependency-groups]
+dev = ["pytest>=9,<10", "ruff==0.16.10"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["models"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error", "default::PendingDeprecationWarning"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
